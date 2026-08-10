@@ -432,7 +432,7 @@ export default function NewProposalPage() {
                             value={req.priority}
                             onChange={(e) => {
                               const updated = [...requirements];
-                              updated[idx].priority = e.target.value as any;
+                              updated[idx].priority = e.target.value as 'low' | 'medium' | 'high';
                               setRequirements(updated);
                             }}
                             className="text-[10px] font-bold rounded border border-slate-200 px-2 py-0.5"

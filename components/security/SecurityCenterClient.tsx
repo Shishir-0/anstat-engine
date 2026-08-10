@@ -213,7 +213,7 @@ export function SecurityCenterClient({ initialPosture, initialFindings, initialS
             <label className="block font-medium text-slate-700 mb-1">Scan Profile</label>
             <select
               value={scanProfile}
-              onChange={(e) => setScanProfile(e.target.value as any)}
+              onChange={(e) => setScanProfile(e.target.value as 'standard' | 'strict' | 'deep')}
               className="w-full h-9 rounded border border-slate-300 px-3 bg-white text-slate-900"
             >
               <option value="standard">Standard Scan (SAST + Secrets)</option>

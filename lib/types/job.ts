@@ -32,7 +32,7 @@ export interface JobEvent {
   timestamp: string;
   level: 'info' | 'warning' | 'error' | 'success';
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Job extends BaseEntity {

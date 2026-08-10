@@ -3,6 +3,7 @@ import { getProposalService, getClientService } from '@/lib/services/registry';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { ProposalStatus } from '@/lib/types/proposal';
 import { ProposalTable } from '@/components/proposals/ProposalTable';
 import { Sparkles, FileText, Plus, Search, DollarSign, CheckCircle2, Send, FileEdit } from 'lucide-react';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ export default async function ProposalsPage({
 
   const proposalsResult = await proposalService.list({
     query: params?.query,
-    status: params?.status as any,
+    status: params?.status as ProposalStatus,
     clientId: params?.clientId,
     sortBy: params?.sortBy,
   });

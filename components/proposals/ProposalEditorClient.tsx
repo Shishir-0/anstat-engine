@@ -78,7 +78,7 @@ export function ProposalEditorClient({ initialProposal, organization }: Proposal
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
 
   // Update proposal helper
-  const handleUpdateContent = (field: keyof ProposalDocument, value: any) => {
+  const handleUpdateContent = (field: keyof ProposalDocument, value: ProposalDocument[keyof ProposalDocument]) => {
     setSaveState('saving');
     setProposal(prev => ({ ...prev, [field]: value }));
     setTimeout(() => {
