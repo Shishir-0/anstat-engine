@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS incidents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    repository_id UUID NOT NULL REFERENCES repositories(id) ON DELETE RESTRICT,
+    repository_id UUID NOT NULL,
     environment VARCHAR(50) NOT NULL DEFAULT 'production',
     title VARCHAR(255) NOT NULL,
     severity severity_level NOT NULL DEFAULT 'high',

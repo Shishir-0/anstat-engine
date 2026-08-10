@@ -12,7 +12,7 @@ All 32 PostgreSQL tables in Zone 3 MUST have RLS enabled (`ALTER TABLE <table> E
 ### Canonical Tenant Isolation Policy Pattern
 ```sql
 -- Helper function to extract organization_id from authenticated JWT
-CREATE OR REPLACE FUNCTION auth.current_organization_id() 
+CREATE OR REPLACE FUNCTION public.current_organization_id() 
 RETURNS UUID AS $$
   SELECT NULLIF(current_setting('request.jwt.claims', true)::json->>'org_id', '')::UUID;
 $$ LANGUAGE sql STABLE;
@@ -21,8 +21,8 @@ $$ LANGUAGE sql STABLE;
 CREATE POLICY tenant_isolation_security_findings ON security_findings
   FOR ALL
   TO authenticated
-  USING (organization_id = auth.current_organization_id())
-  WITH CHECK (organization_id = auth.current_organization_id());
+  USING (organization_id = public.current_organization_id())
+  WITH CHECK (organization_id = public.current_organization_id());
 ```
 
 ---

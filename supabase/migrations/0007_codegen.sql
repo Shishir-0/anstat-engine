@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS code_jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    repository_id UUID NOT NULL REFERENCES repositories(id) ON DELETE RESTRICT,
+    repository_id UUID NOT NULL,
     branch VARCHAR(100) NOT NULL DEFAULT 'main',
     feature_branch VARCHAR(100) NOT NULL,
     issue JSONB NOT NULL DEFAULT '{}'::jsonb,

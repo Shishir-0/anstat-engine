@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS repositories (
 CREATE TABLE IF NOT EXISTS pull_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    repository_id UUID NOT NULL REFERENCES repositories(id) ON DELETE RESTRICT,
+    repository_id UUID NOT NULL,
     number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     html_url TEXT NOT NULL,
