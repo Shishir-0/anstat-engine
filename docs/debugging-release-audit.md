@@ -9,7 +9,7 @@
 ## Executive Summary
 This document records the strict release-candidate audit of the **Debugging Hub & Incident Intelligence** module (Phase 6).
 
-The audit evaluated workflow completeness, signal correlation integrity, multiple root-cause hypotheses safety, patch diff inertness, validation and security gate delegation, regression verification enforcement, PR handoff safety, responsive behavior, accessibility, and global system regressions.
+The audit evaluated workflow completeness, signal correlation integrity, multiple root-cause hypotheses safety, patch diff inertness, validation and security gate delegation, regression verification enforcement, PR handoff safety, responsive behavior, accessibility, and global system regressions across the 10-stage incident resolution trust lifecycle.
 
 ---
 
