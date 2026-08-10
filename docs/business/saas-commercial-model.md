@@ -117,7 +117,7 @@ $$\text{AI Credits Consumed} = \left( \frac{\text{Input Tokens} \times \$0.003}{
 ## 8. Idempotent Billing Webhook Engine
 
 ```
-[Payment Gateway Webhook] ──> [Signature Verification] ──> [Idempotency Check (payment_webhook_events)]
+[Payment Gateway Webhook] ──> [Signature Verification (Provider HMAC Header)] ──> [Idempotency Check (payment_webhook_events)]
                                                                     │
                                                            [Already Processed?]
                                                            ├── YES ──> HTTP 200 (Ignore)

@@ -1,13 +1,13 @@
-# Row-Level Security (RLS) & Application Authorization Policies — ANSTAT AI ENGINE
+# Row-Level Security (RLS), Authorization & Entitlement Policies — ANSTAT AI ENGINE
 
 > **Phase 7 Blueprint Document**  
-> *Database Row-Level Security Policies, RBAC Permission Matrix, and Secret Boundary Definitions.*
+> *Database Row-Level Security Policies, Server-Side Entitlement Check Engine, RBAC Permission Matrix, and Secret Boundary Definitions.*
 
 ---
 
 ## 1. Database Row-Level Security (RLS) Policies
 
-All PostgreSQL tables in Zone 3 MUST have RLS enabled (`ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;`).
+All 32 PostgreSQL tables in Zone 3 MUST have RLS enabled (`ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;`).
 
 ### Canonical Tenant Isolation Policy Pattern
 ```sql
@@ -27,7 +27,27 @@ CREATE POLICY tenant_isolation_security_findings ON security_findings
 
 ---
 
-## 2. RBAC Permission Matrix
+## 2. Server-Side Entitlement Check Engine
+
+The browser UI displays usage gauges (e.g. `677 / 1,000 AI Credits`), but **ONLY** the server backend evaluates whether an operation is permitted before execution.
+
+```
+[API / Worker Request] ──> [Extract Organization ID] ──> [Query Active Subscription & Usage Counters]
+                                                                     │
+                                                           [Entitlement Allowed?]
+                                                           ├── YES ──> Execute Operation & Deduct Usage
+                                                           └── NO  ──> Throw EntitlementExceededError (HTTP 402)
+```
+
+### Server Entitlement Methods
+- `canCreateProposal(orgId: string): Promise<boolean>`
+- `canCreateCodeJob(orgId: string): Promise<boolean>`
+- `canRunSecurityScan(orgId: string): Promise<boolean>`
+- `canUseAI(orgId: string, estimatedCredits: number): Promise<boolean>`
+
+---
+
+## 3. RBAC Permission Matrix
 
 | Role | Proposals | Code Generation | Security Center | Debugging Hub | GitHub Settings | Workspace Admin |
 |---|---|---|---|---|---|---|
@@ -39,7 +59,7 @@ CREATE POLICY tenant_isolation_security_findings ON security_findings
 
 ---
 
-## 3. Server Secret Isolation Matrix
+## 4. Server Secret Isolation Matrix
 
 | Secret Name | Environment Scope | Exposed to Browser? | Purpose |
 |---|---|---|---|
