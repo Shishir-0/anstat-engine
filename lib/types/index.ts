@@ -12,3 +12,4 @@ export * from './audit';
 export * from './usage';
 export * from './ai-model';
 export * from './permissions';
+export * from './entitlement';

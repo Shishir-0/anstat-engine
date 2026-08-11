@@ -147,6 +147,15 @@ export class MockCodeService implements CodeService {
   }
 
   async createJob(input: CreateCodeJobInput): Promise<CodeJob> {
+    const { getEntitlementService } = await import('../registry');
+    const entitlementService = getEntitlementService();
+    const result = await entitlementService.consumeCodeJob();
+    if (!result.allowed) {
+      const error = new Error(result.message || `Code job creation blocked by entitlement engine: ${result.reason}`);
+      (error as unknown as { code: string }).code = result.reason || 'RESOURCE_LIMIT_REACHED';
+      throw error;
+    }
+
     const context = await this.aiService.analyzeContext(input.repositoryId, input.issue);
     const plan = await this.aiService.generatePlan(input.issue, context, input.modelId);
     const patch = await this.aiService.generatePatch(plan, context, input.modelId);

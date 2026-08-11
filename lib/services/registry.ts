@@ -11,6 +11,7 @@ import { JobsService } from './interfaces/jobs.service';
 import { DeploymentService } from './interfaces/deployment.service';
 import { AuditService } from './interfaces/audit.service';
 import { UsageService } from './interfaces/usage.service';
+import { EntitlementService } from './interfaces/entitlement.service';
 
 import { MockAuthService } from './mock/mock-auth.service';
 import { SupabaseAuthService } from './supabase/supabase-auth.service';
@@ -26,11 +27,13 @@ import { MockJobsService } from './mock/mock-jobs.service';
 import { MockDeploymentService } from './mock/mock-deployment.service';
 import { MockAuditService } from './mock/mock-audit.service';
 import { MockUsageService } from './mock/mock-usage.service';
+import { MockEntitlementService } from './mock/mock-entitlement.service';
+import { SupabaseEntitlementService } from './supabase/supabase-entitlement.service';
 
-const useSupabaseAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH !== 'true' && !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+const useSupabase = process.env.NEXT_PUBLIC_USE_MOCK_AUTH !== 'true' && !!process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 class ServiceRegistry {
-  private authService: AuthService = useSupabaseAuth ? new SupabaseAuthService() : new MockAuthService();
+  private authService: AuthService = useSupabase ? new SupabaseAuthService() : new MockAuthService();
   private proposalService: ProposalService = new MockProposalService();
   private clientService: ClientService = new MockClientService();
   private codeService: CodeService = new MockCodeService();
@@ -43,6 +46,7 @@ class ServiceRegistry {
   private deploymentService: DeploymentService = new MockDeploymentService();
   private auditService: AuditService = new MockAuditService();
   private usageService: UsageService = new MockUsageService();
+  private entitlementService: EntitlementService = useSupabase ? new SupabaseEntitlementService() : new MockEntitlementService();
 
   getAuthService(): AuthService { return this.authService; }
   getProposalService(): ProposalService { return this.proposalService; }
@@ -57,6 +61,7 @@ class ServiceRegistry {
   getDeploymentService(): DeploymentService { return this.deploymentService; }
   getAuditService(): AuditService { return this.auditService; }
   getUsageService(): UsageService { return this.usageService; }
+  getEntitlementService(): EntitlementService { return this.entitlementService; }
 }
 
 export const registry = new ServiceRegistry();
@@ -74,3 +79,4 @@ export function getJobsService(): JobsService { return registry.getJobsService()
 export function getDeploymentService(): DeploymentService { return registry.getDeploymentService(); }
 export function getAuditService(): AuditService { return registry.getAuditService(); }
 export function getUsageService(): UsageService { return registry.getUsageService(); }
+export function getEntitlementService(): EntitlementService { return registry.getEntitlementService(); }

@@ -2,6 +2,19 @@ import { AIService } from '../interfaces/ai.service';
 import { CodePlan, CodePatch, CodeRepositoryContext, CodeIssueContext } from '../../types/code';
 
 export class MockAIService implements AIService {
+  private async consumeCreditsForAI(inputTokens: number, outputTokens: number): Promise<void> {
+    const { getEntitlementService } = await import('../registry');
+    const entitlementService = getEntitlementService();
+    const rawCredits = ((inputTokens * 0.003 / 1000) + (outputTokens * 0.015 / 1000)) * 100;
+    const credits = Math.max(1, Math.ceil(rawCredits));
+    const result = await entitlementService.consumeAICredits(credits);
+    if (!result.allowed) {
+      const error = new Error(result.message || `AI execution blocked due to insufficient AI credits: ${result.reason}`);
+      (error as unknown as { code: string }).code = result.reason || 'AI_CREDIT_LIMIT_REACHED';
+      throw error;
+    }
+  }
+
   async analyzeContext(repoId: string, issue: CodeIssueContext): Promise<CodeRepositoryContext> {
     return {
       repositoryId: repoId,
@@ -21,6 +34,7 @@ export class MockAIService implements AIService {
   }
 
   async generatePlan(issue: CodeIssueContext, context: CodeRepositoryContext, modelId: string): Promise<CodePlan> {
+    await this.consumeCreditsForAI(2500, 1500);
     return {
       id: `plan_${Date.now()}`,
       summary: `Implementation plan for: ${issue.title}`,
@@ -56,6 +70,7 @@ export class MockAIService implements AIService {
   }
 
   async generatePatch(plan: CodePlan, context: CodeRepositoryContext, modelId: string): Promise<CodePatch> {
+    await this.consumeCreditsForAI(15000, 2000);
     return {
       id: `patch_${Date.now()}`,
       filesChangedCount: 3,

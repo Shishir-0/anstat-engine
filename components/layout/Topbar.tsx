@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, Bell, Command, User, Settings, LogOut, Building2 } from 'lucide-react';
+import { Search, Bell, Command, User, Settings, LogOut, Building2, Zap } from 'lucide-react';
 import { CommandPalette } from '@/components/navigation/CommandPalette';
 import { NotificationsDrawer } from '@/components/navigation/NotificationsDrawer';
-import { getAuthService } from '@/lib/services/registry';
+import { getAuthService, getEntitlementService } from '@/lib/services/registry';
 
 export function Topbar() {
   const pathname = usePathname();
@@ -16,9 +16,11 @@ export function Topbar() {
   const [userName, setUserName] = React.useState('Shishir Kumar');
   const [userEmail, setUserEmail] = React.useState('shishir@northstarstudio.dev');
   const [userInitials, setUserInitials] = React.useState('SK');
+  const [aiCreditsText, setAiCreditsText] = React.useState('125 / 300 AI Credits');
+  const [planBadge, setPlanBadge] = React.useState('Starter (₹499/mo)');
 
   React.useEffect(() => {
-    async function loadUser() {
+    async function loadData() {
       try {
         const authService = getAuthService();
         const currentUser = await authService.getCurrentUser();
@@ -33,11 +35,16 @@ export function Topbar() {
             .slice(0, 2);
           setUserInitials(initials || 'AU');
         }
+
+        const entitlementService = getEntitlementService();
+        const summary = await entitlementService.getUsageSummary();
+        setAiCreditsText(`${summary.used.aiCredits} / ${summary.limits.aiCredits} AI Credits`);
+        setPlanBadge(`${summary.planName} (₹${summary.priceInrMonthly}/mo)`);
       } catch {
-        // Fallback to default user info
+        // Fallback to default user & entitlement info
       }
     }
-    loadUser();
+    loadData();
   }, []);
 
   // Generate Breadcrumbs from route path
@@ -85,10 +92,12 @@ export function Topbar() {
             </kbd>
           </button>
 
-          {/* Environment Status Badge */}
-          <div className="hidden md:flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Supabase Auth Ready</span>
+          {/* Entitlement Summary Meter */}
+          <div className="hidden md:flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-semibold text-emerald-800">
+            <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            <span>{planBadge}</span>
+            <span className="text-emerald-300">|</span>
+            <span className="text-emerald-700">{aiCreditsText}</span>
           </div>
 
           {/* Notifications Bell */}

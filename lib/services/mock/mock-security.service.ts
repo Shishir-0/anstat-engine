@@ -31,6 +31,15 @@ export class MockSecurityService implements SecurityService {
   }
 
   async runScan(input: { repositoryId: string; repositoryName: string; branch: string; profile: 'standard' | 'strict' | 'deep' }): Promise<SecurityScan> {
+    const { getEntitlementService } = await import('../registry');
+    const entitlementService = getEntitlementService();
+    const result = await entitlementService.consumeSecurityScan();
+    if (!result.allowed) {
+      const error = new Error(result.message || `Security scan blocked by entitlement engine: ${result.reason}`);
+      (error as unknown as { code: string }).code = result.reason || 'RESOURCE_LIMIT_REACHED';
+      throw error;
+    }
+
     const newScan: SecurityScan = {
       id: `scan_${Date.now()}`,
       organizationId: 'org_anstat_01',

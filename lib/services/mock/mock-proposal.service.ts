@@ -3,6 +3,7 @@ import { ProposalDocument, ProposalStatus, BriefInput } from '../../types/propos
 import { PaginatedResult } from '../../types/common';
 import { Job } from '../../types/job';
 import { MOCK_PROPOSALS } from '../../mock/seed-data';
+import { getEntitlementService } from '../registry';
 
 const VALID_STATUS_TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
   draft: ['generated', 'review', 'archived'],
@@ -67,6 +68,14 @@ export class MockProposalService implements ProposalService {
   }
 
   async create(input: Partial<ProposalDocument>): Promise<ProposalDocument> {
+    const entitlementService = getEntitlementService();
+    const result = await entitlementService.consumeProposal();
+    if (!result.allowed) {
+      const error = new Error(result.message || `Proposal creation blocked by entitlement engine: ${result.reason}`);
+      (error as unknown as { code: string }).code = result.reason || 'RESOURCE_LIMIT_REACHED';
+      throw error;
+    }
+
     const newProposal: ProposalDocument = {
       id: `prop_${Date.now()}`,
       organizationId: 'org_anstat_01',
