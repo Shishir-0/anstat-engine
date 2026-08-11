@@ -132,6 +132,13 @@ export class MockEntitlementService implements EntitlementService {
     const plan = await this.getPlan();
     const sub = await this.getSubscription(organizationId);
 
+    const safeSeats = isNaN(this.usage.seats) ? 0 : this.usage.seats;
+    const safeRepos = isNaN(this.usage.repositories) ? 0 : this.usage.repositories;
+    const safeProps = isNaN(this.usage.proposals) ? 0 : this.usage.proposals;
+    const safeJobs = isNaN(this.usage.codeJobs) ? 0 : this.usage.codeJobs;
+    const safeScans = isNaN(this.usage.securityScans) ? 0 : this.usage.securityScans;
+    const safeCredits = isNaN(this.usage.aiCredits) ? 0 : this.usage.aiCredits;
+
     return {
       organizationId: organizationId || 'org_anstat_01',
       planCode: plan.code,
@@ -146,14 +153,21 @@ export class MockEntitlementService implements EntitlementService {
         securityScans: plan.monthlySecurityScans,
         aiCredits: plan.monthlyAiCredits,
       },
-      used: { ...this.usage },
+      used: {
+        seats: safeSeats,
+        repositories: safeRepos,
+        proposals: safeProps,
+        codeJobs: safeJobs,
+        securityScans: safeScans,
+        aiCredits: safeCredits,
+      },
       remaining: {
-        seats: Math.max(0, plan.maxMembers - this.usage.seats),
-        repositories: Math.max(0, plan.maxRepositories - this.usage.repositories),
-        proposals: Math.max(0, plan.monthlyProposals - this.usage.proposals),
-        codeJobs: Math.max(0, plan.monthlyCodeJobs - this.usage.codeJobs),
-        securityScans: Math.max(0, plan.monthlySecurityScans - this.usage.securityScans),
-        aiCredits: Math.max(0, plan.monthlyAiCredits - this.usage.aiCredits),
+        seats: Math.max(0, plan.maxMembers - safeSeats),
+        repositories: Math.max(0, plan.maxRepositories - safeRepos),
+        proposals: Math.max(0, plan.monthlyProposals - safeProps),
+        codeJobs: Math.max(0, plan.monthlyCodeJobs - safeJobs),
+        securityScans: Math.max(0, plan.monthlySecurityScans - safeScans),
+        aiCredits: Math.max(0, plan.monthlyAiCredits - safeCredits),
       },
     };
   }
@@ -265,8 +279,9 @@ export class MockEntitlementService implements EntitlementService {
   private async atomicConsume(resource: EntitlementResource, amount: number, organizationId?: string): Promise<EntitlementCheckResult> {
     const key = this.getResourceKey(resource);
     const summary = await this.getUsageSummary(organizationId);
+    const numAmount = Number(amount);
 
-    if (amount <= 0) {
+    if (isNaN(numAmount) || numAmount <= 0) {
       return {
         allowed: false,
         resource,
@@ -291,10 +306,10 @@ export class MockEntitlementService implements EntitlementService {
     }
 
     const limit = summary.limits[key];
-    const currentUsed = this.usage[key];
+    const currentUsed = isNaN(this.usage[key]) ? 0 : this.usage[key];
 
     // Atomic boundary check
-    if (currentUsed + amount > limit) {
+    if (currentUsed + numAmount > limit) {
       const reason = resource === 'ai_credits' ? 'AI_CREDIT_LIMIT_REACHED' : 'RESOURCE_LIMIT_REACHED';
       return {
         allowed: false,
@@ -308,7 +323,7 @@ export class MockEntitlementService implements EntitlementService {
     }
 
     // Atomic increment
-    this.usage[key] += amount;
+    this.usage[key] = currentUsed + numAmount;
     const newUsed = this.usage[key];
 
     return {

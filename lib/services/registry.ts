@@ -7,6 +7,7 @@ import { SecurityService } from './interfaces/security.service';
 import { DebuggingService } from './interfaces/debugging.service';
 import { GitHubService } from './interfaces/github.service';
 import { AIService } from './interfaces/ai.service';
+import { AIProviderService } from './interfaces/ai-provider.service';
 import { JobsService } from './interfaces/jobs.service';
 import { DeploymentService } from './interfaces/deployment.service';
 import { AuditService } from './interfaces/audit.service';
@@ -23,6 +24,7 @@ import { MockSecurityService } from './mock/mock-security.service';
 import { MockDebuggingService } from './mock/mock-debugging.service';
 import { MockGitHubService } from './mock/mock-github.service';
 import { MockAIService } from './mock/mock-ai.service';
+import { AIGatewayService } from './ai/ai-gateway';
 import { MockJobsService } from './mock/mock-jobs.service';
 import { MockDeploymentService } from './mock/mock-deployment.service';
 import { MockAuditService } from './mock/mock-audit.service';
@@ -42,11 +44,12 @@ class ServiceRegistry {
   private debuggingService: DebuggingService = new MockDebuggingService();
   private githubService: GitHubService = new MockGitHubService();
   private aiService: AIService = new MockAIService();
+  private entitlementService: EntitlementService = useSupabase ? new SupabaseEntitlementService() : new MockEntitlementService();
+  private aiGatewayService: AIProviderService = new AIGatewayService(undefined, this.entitlementService);
   private jobsService: JobsService = new MockJobsService();
   private deploymentService: DeploymentService = new MockDeploymentService();
   private auditService: AuditService = new MockAuditService();
   private usageService: UsageService = new MockUsageService();
-  private entitlementService: EntitlementService = useSupabase ? new SupabaseEntitlementService() : new MockEntitlementService();
 
   getAuthService(): AuthService { return this.authService; }
   getProposalService(): ProposalService { return this.proposalService; }
@@ -57,6 +60,7 @@ class ServiceRegistry {
   getDebuggingService(): DebuggingService { return this.debuggingService; }
   getGitHubService(): GitHubService { return this.githubService; }
   getAIService(): AIService { return this.aiService; }
+  getAIGatewayService(): AIProviderService { return this.aiGatewayService; }
   getJobsService(): JobsService { return this.jobsService; }
   getDeploymentService(): DeploymentService { return this.deploymentService; }
   getAuditService(): AuditService { return this.auditService; }
@@ -75,6 +79,7 @@ export function getSecurityService(): SecurityService { return registry.getSecur
 export function getDebuggingService(): DebuggingService { return registry.getDebuggingService(); }
 export function getGitHubService(): GitHubService { return registry.getGitHubService(); }
 export function getAIService(): AIService { return registry.getAIService(); }
+export function getAIGatewayService(): AIProviderService { return registry.getAIGatewayService(); }
 export function getJobsService(): JobsService { return registry.getJobsService(); }
 export function getDeploymentService(): DeploymentService { return registry.getDeploymentService(); }
 export function getAuditService(): AuditService { return registry.getAuditService(); }
