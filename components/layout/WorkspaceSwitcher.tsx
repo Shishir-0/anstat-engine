@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Building2, Check, ChevronDown, Plus, Sparkles } from 'lucide-react';
+import { Building2, Check, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { getAuthService } from '@/lib/services/registry';
 import { Dialog } from '@/components/ui/Dialog';
@@ -14,32 +14,66 @@ interface WorkspaceItem {
   plan: string;
 }
 
-const WORKSPACES: WorkspaceItem[] = [
+const DEFAULT_WORKSPACES: WorkspaceItem[] = [
   { id: 'org_anstat_01', name: 'Northstar Studio', plan: 'Agency' },
   { id: 'org_personal_02', name: 'Personal Dev Workspace', plan: 'Growth' },
 ];
 
 export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [currentId, setCurrentId] = React.useState('org_anstat_01');
+  const [workspaces, setWorkspaces] = React.useState<WorkspaceItem[]>(DEFAULT_WORKSPACES);
+  const [currentId, setCurrentId] = React.useState<string>('org_anstat_01');
+  const [currentName, setCurrentName] = React.useState<string>('Northstar Studio');
+  const [currentPlan, setCurrentPlan] = React.useState<string>('Agency');
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [newOrgName, setNewOrgName] = React.useState('');
 
-  const currentOrg = WORKSPACES.find(w => w.id === currentId) || WORKSPACES[0];
+  React.useEffect(() => {
+    async function loadOrg() {
+      try {
+        const authService = getAuthService();
+        const org = await authService.getCurrentOrganization();
+        if (org) {
+          setCurrentId(org.id);
+          setCurrentName(org.name);
+          setCurrentPlan(org.plan.toUpperCase());
+          setWorkspaces(prev => {
+            if (!prev.some(w => w.id === org.id)) {
+              return [...prev, { id: org.id, name: org.name, plan: org.plan }];
+            }
+            return prev;
+          });
+        }
+      } catch {
+        // Fallback to default state
+      }
+    }
+    loadOrg();
+  }, []);
 
   const handleSelect = async (id: string) => {
-    setCurrentId(id);
-    setIsOpen(false);
-    const authService = getAuthService();
-    await authService.switchWorkspace(id);
+    try {
+      const authService = getAuthService();
+      const updatedOrg = await authService.switchWorkspace(id);
+      setCurrentId(updatedOrg.id);
+      setCurrentName(updatedOrg.name);
+      setCurrentPlan(updatedOrg.plan.toUpperCase());
+      setIsOpen(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to switch workspace';
+      alert(errorMessage);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOrgName.trim()) return;
     const newId = `org_${Date.now()}`;
-    WORKSPACES.push({ id: newId, name: newOrgName, plan: 'Agency' });
+    const newWs: WorkspaceItem = { id: newId, name: newOrgName, plan: 'AGENCY' };
+    setWorkspaces(prev => [...prev, newWs]);
     setCurrentId(newId);
+    setCurrentName(newOrgName);
+    setCurrentPlan('AGENCY');
     setNewOrgName('');
     setIsCreateOpen(false);
   };
@@ -50,7 +84,7 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-emerald-600 hover:bg-slate-50 transition-colors"
-          title={currentOrg.name}
+          title={currentName}
         >
           <Building2 className="h-4 w-4" />
         </button>
@@ -66,11 +100,11 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
       >
         <div className="flex items-center gap-2 truncate">
           <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
-          <span className="truncate font-semibold text-slate-900">{currentOrg.name}</span>
+          <span className="truncate font-semibold text-slate-900">{currentName}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
-            {currentOrg.plan}
+            {currentPlan}
           </span>
           <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
         </div>
@@ -82,7 +116,7 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
           <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Workspaces
           </div>
-          {WORKSPACES.map((ws) => (
+          {workspaces.map((ws) => (
             <button
               key={ws.id}
               onClick={() => handleSelect(ws.id)}

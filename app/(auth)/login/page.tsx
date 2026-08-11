@@ -3,19 +3,39 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { GitBranch, ArrowRight } from 'lucide-react';
+import { GitBranch, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { getAuthService } from '@/lib/services/registry';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = React.useState('shishir@northstarstudio.dev');
-  const [password, setPassword] = React.useState('••••••••••••');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const authService = getAuthService();
+      const authState = await authService.login({ email, password });
+      if (authState.isAuthenticated) {
+        router.push('/dashboard');
+        router.refresh();
+      } else {
+        setError('Authentication failed. Please check your credentials.');
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred during login.';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,10 +50,18 @@ export default function LoginPage() {
 
       <Card>
         <CardContent className="p-6 space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 p-3 text-xs text-red-700 bg-red-50 rounded-lg border border-red-200">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
               label="Work Email"
               type="email"
+              placeholder="shishir@northstarstudio.dev"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -41,12 +69,21 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
+              placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <Button variant="primary" type="submit" className="w-full">
-              Sign In <ArrowRight className="ml-2 h-4 w-4" />
+            <Button variant="primary" type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing In...
+                </>
+              ) : (
+                <>
+                  Sign In <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
 
@@ -58,6 +95,7 @@ export default function LoginPage() {
             variant="outline"
             onClick={() => router.push('/dashboard')}
             className="w-full"
+            disabled={isLoading}
           >
             <GitBranch className="mr-2 h-4 w-4 text-slate-700" /> Continue with GitHub
           </Button>

@@ -13,6 +13,32 @@ export function Topbar() {
   const [isCommandOpen, setIsCommandOpen] = React.useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [userName, setUserName] = React.useState('Shishir Kumar');
+  const [userEmail, setUserEmail] = React.useState('shishir@northstarstudio.dev');
+  const [userInitials, setUserInitials] = React.useState('SK');
+
+  React.useEffect(() => {
+    async function loadUser() {
+      try {
+        const authService = getAuthService();
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUserName(currentUser.name || 'ANSTAT User');
+          setUserEmail(currentUser.email || '');
+          const initials = (currentUser.name || 'AU')
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+          setUserInitials(initials || 'AU');
+        }
+      } catch {
+        // Fallback to default user info
+      }
+    }
+    loadUser();
+  }, []);
 
   // Generate Breadcrumbs from route path
   const segments = pathname.split('/').filter(Boolean);
@@ -26,6 +52,7 @@ export function Topbar() {
     const authService = getAuthService();
     await authService.logout();
     router.push('/login');
+    router.refresh();
   };
 
   return (
@@ -61,7 +88,7 @@ export function Topbar() {
           {/* Environment Status Badge */}
           <div className="hidden md:flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Simulated Engine</span>
+            <span>Supabase Auth Ready</span>
           </div>
 
           {/* Notifications Bell */}
@@ -80,14 +107,14 @@ export function Topbar() {
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white font-bold text-xs ring-2 ring-slate-200 hover:ring-emerald-500 transition-all cursor-pointer"
             >
-              SK
+              {userInitials}
             </button>
 
             {isUserMenuOpen && (
               <div className="absolute right-0 top-10 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-xl text-xs space-y-0.5 z-40 animate-in zoom-in-95 duration-100">
                 <div className="p-2 border-b border-slate-100">
-                  <p className="font-semibold text-slate-900">Shishir Kumar</p>
-                  <p className="text-[10px] text-slate-500 truncate">shishir@northstarstudio.dev</p>
+                  <p className="font-semibold text-slate-900">{userName}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{userEmail}</p>
                 </div>
                 <button
                   onClick={() => { setIsUserMenuOpen(false); router.push('/settings/profile'); }}

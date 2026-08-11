@@ -1,6 +1,6 @@
 import { BaseEntity } from './common';
 
-export type UserRole = 'owner' | 'admin' | 'lead_engineer' | 'engineer' | 'viewer';
+export type UserRole = 'owner' | 'admin' | 'senior_engineer' | 'developer' | 'viewer';
 
 export interface User {
   id: string;

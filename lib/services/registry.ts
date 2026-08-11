@@ -13,6 +13,7 @@ import { AuditService } from './interfaces/audit.service';
 import { UsageService } from './interfaces/usage.service';
 
 import { MockAuthService } from './mock/mock-auth.service';
+import { SupabaseAuthService } from './supabase/supabase-auth.service';
 import { MockProposalService } from './mock/mock-proposal.service';
 import { MockClientService } from './mock/mock-client.service';
 import { MockCodeService } from './mock/mock-code.service';
@@ -26,8 +27,10 @@ import { MockDeploymentService } from './mock/mock-deployment.service';
 import { MockAuditService } from './mock/mock-audit.service';
 import { MockUsageService } from './mock/mock-usage.service';
 
+const useSupabaseAuth = process.env.NEXT_PUBLIC_USE_MOCK_AUTH !== 'true' && !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 class ServiceRegistry {
-  private authService: AuthService = new MockAuthService();
+  private authService: AuthService = useSupabaseAuth ? new SupabaseAuthService() : new MockAuthService();
   private proposalService: ProposalService = new MockProposalService();
   private clientService: ClientService = new MockClientService();
   private codeService: CodeService = new MockCodeService();

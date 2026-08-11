@@ -48,7 +48,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     'deployment.production',
     'workspace.manage',
   ],
-  lead_engineer: [
+  senior_engineer: [
     'proposal.read',
     'proposal.create',
     'proposal.export',
@@ -60,7 +60,7 @@ export const ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     'deployment.create',
     'deployment.production',
   ],
-  engineer: [
+  developer: [
     'proposal.read',
     'code.create',
     'code.read',
